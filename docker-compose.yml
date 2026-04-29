@@ -1,0 +1,30 @@
+services:
+  haproxy:
+    build:
+      context: ./docker/haproxy
+    volumes:
+      - haproxy-config:/etc/haproxy
+      - haproxy-run:/var/run/haproxy
+    ports:
+      - "50051:50051"
+    restart: unless-stopped
+
+  agent:
+    build:
+      context: .
+      dockerfile: docker/agent/Dockerfile
+    network_mode: "service:haproxy"
+    volumes:
+      - haproxy-config:/etc/haproxy
+      - haproxy-run:/var/run/haproxy
+    environment:
+      GRPC_LISTEN_ADDR: ":50051"
+      HAPROXY_CONFIG_DIR: "/etc/haproxy"
+      HAPROXY_MASTER_SOCK: "/var/run/haproxy/master.sock"
+    depends_on:
+      - haproxy
+    restart: unless-stopped
+
+volumes:
+  haproxy-config:
+  haproxy-run:

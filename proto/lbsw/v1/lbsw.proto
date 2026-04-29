@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package lbsw.v1;
+
+option go_package = "github.com/bapturp/lbsw/gen/lbsw/v1;lbswv1";
+
+// LoadBalancerService provides dynamic configuration of a load balancer
+// and exposes network socket information.
+service LoadBalancerService {
+  // CreateService creates a new load-balanced service with a listen port.
+  rpc CreateService(CreateServiceRequest) returns (CreateServiceResponse);
+
+  // DeleteService removes an existing service.
+  rpc DeleteService(DeleteServiceRequest) returns (DeleteServiceResponse);
+
+  // GetService returns the details of a single service.
+  rpc GetService(GetServiceRequest) returns (GetServiceResponse);
+
+  // ListServices returns all configured services.
+  rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
+
+  // AddServer adds a backend server to an existing service.
+  rpc AddServer(AddServerRequest) returns (AddServerResponse);
+
+  // RemoveServer removes a backend server from an existing service.
+  rpc RemoveServer(RemoveServerRequest) returns (RemoveServerResponse);
+
+  // GetSocketStates returns network sockets grouped by TCP state.
+  rpc GetSocketStates(GetSocketStatesRequest) returns (GetSocketStatesResponse);
+}
+
+// Service represents a load-balanced service.
+message Service {
+  string name = 1;
+  uint32 listen_port = 2;
+  repeated Server servers = 3;
+}
+
+// Server represents a backend destination server.
+message Server {
+  string host = 1;
+  uint32 port = 2;
+}
+
+message CreateServiceRequest {
+  string name = 1;
+  uint32 listen_port = 2;
+}
+
+message CreateServiceResponse {
+  Service service = 1;
+}
+
+message DeleteServiceRequest {
+  string name = 1;
+}
+
+message DeleteServiceResponse {}
+
+message GetServiceRequest {
+  string name = 1;
+}
+
+message GetServiceResponse {
+  Service service = 1;
+}
+
+message ListServicesRequest {}
+
+message ListServicesResponse {
+  repeated Service services = 1;
+}
+
+message AddServerRequest {
+  string service_name = 1;
+  Server server = 2;
+}
+
+message AddServerResponse {
+  Service service = 1;
+}
+
+message RemoveServerRequest {
+  string service_name = 1;
+  string host = 2;
+  uint32 port = 3;
+}
+
+message RemoveServerResponse {
+  Service service = 1;
+}
+
+// SocketInfo describes a single network socket.
+message SocketInfo {
+  string local_address = 1;
+  string remote_address = 2;
+}
+
+// SocketStateGroup groups sockets by their TCP state.
+message SocketStateGroup {
+  string state = 1;
+  repeated SocketInfo sockets = 2;
+}
+
+message GetSocketStatesRequest {}
+
+message GetSocketStatesResponse {
+  repeated SocketStateGroup groups = 1;
+}

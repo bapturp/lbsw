@@ -5,7 +5,6 @@ package tests
 import (
 	"context"
 	"fmt"
-	"net"
 	"os"
 	"os/exec"
 	"testing"
@@ -141,12 +140,6 @@ func TestAddAndRemoveServer(t *testing.T) {
 		t.Errorf("expected 1 server, got %d", len(addResp.GetService().GetServers()))
 	}
 
-	// Verify the port is listening (HAProxy should bind it).
-	time.Sleep(1 * time.Second) // Wait for HAProxy reload.
-	if err := checkPortListening(18081); err != nil {
-		t.Logf("port 18081 not listening (may be expected if HAProxy needs backends): %v", err)
-	}
-
 	// Add duplicate should fail.
 	_, err = client.AddServer(ctx, &pb.AddServerRequest{
 		ServiceName: "functest-backend",
@@ -256,15 +249,6 @@ func TestDuplicateServiceName(t *testing.T) {
 func cleanup(ctx context.Context, t *testing.T, name string) {
 	t.Helper()
 	_, _ = client.DeleteService(ctx, &pb.DeleteServiceRequest{Name: name})
-}
-
-func checkPortListening(port int) error {
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%d", port), 2*time.Second)
-	if err != nil {
-		return err
-	}
-	conn.Close()
-	return nil
 }
 
 func envOrDefault(key, def string) string {
